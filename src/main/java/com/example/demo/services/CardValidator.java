@@ -37,7 +37,7 @@ public class CardValidator {
 
     private List<String> validateExpirationDate(final Date expirationDate) {
         List<String> issues = new ArrayList<>();
-        if (LocalDate.now()
+        if (LocalDate.now(clock)
                 .isAfter(expirationDate.toLocalDate()))
             issues.add("Card expiration date has already passed");
         return issues;

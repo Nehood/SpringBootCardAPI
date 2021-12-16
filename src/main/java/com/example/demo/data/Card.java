@@ -1,13 +1,15 @@
 package com.example.demo.data;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 import javax.persistence.*;
 import java.sql.Date;
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
 @Entity
 public class Card {

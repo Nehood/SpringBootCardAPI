@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -34,7 +33,7 @@ public class CardController {
         } catch (DataIntegrityViolationException ex) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("Card with given number already exists"));
         }
-        // TODO: tests, cache, flyway
+        // TODO: cache, flyway
     }
 
     @GetMapping("/cards")
