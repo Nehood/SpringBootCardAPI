@@ -1,17 +1,24 @@
 package com.example.demo.controllers;
 
+import java.util.List;
+import java.util.Optional;
+import javax.validation.Valid;
+
 import com.example.demo.data.Card;
 import com.example.demo.repositories.CardRepository;
 import com.example.demo.services.CardValidator;
+import com.example.demo.services.LRUCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
-import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 public class CardController {
@@ -21,6 +28,9 @@ public class CardController {
 
     @Autowired
     private CardValidator cardValidator;
+
+    @Autowired
+    private LRUCache cache;
 
     @PostMapping("/card")
     public ResponseEntity<String> addCard(@Valid @RequestBody final Card card) {
@@ -33,7 +43,6 @@ public class CardController {
         } catch (DataIntegrityViolationException ex) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("Card with given number already exists"));
         }
-        // TODO: cache, flyway
     }
 
     @GetMapping("/cards")
@@ -43,7 +52,16 @@ public class CardController {
 
     @GetMapping("/cards/{id}")
     public @ResponseBody Card getCard(@PathVariable final Long id) {
-        return cardRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Card with id %d not found", id)));
+        Optional<Card> cacheRead = cache.get(id);
+        if (cacheRead.isEmpty()) {
+            Optional<Card> cardRead = cardRepository.findById(id);
+            if (cardRead.isPresent()) {
+                cache.put(id, cardRead.get());
+                return cardRead.get();
+            } else
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Card with id %d not found", id));
+        } else return cacheRead.get();
+//        return cardRepository.findById(id)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Card with id %d not found", id)));
     }
 }
